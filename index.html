@@ -718,6 +718,77 @@ h1 {
   line-height: 1.9;
 }
 
+.ticket-result {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-height: 86px;
+  margin: 28px auto 0;
+  max-width: 430px;
+  overflow: hidden;
+  background: #eee9e1;
+  color: #111;
+  border: 1px solid #eee9e1;
+  text-align: left;
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+
+.ticket-result::before,
+.ticket-result::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  border-radius: 50%;
+  background: #11100f;
+}
+
+.ticket-result::before { left: -10px; }
+.ticket-result::after { right: -10px; }
+
+.ticket-result:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0,0,0,.35);
+}
+
+.ticket-result-side {
+  width: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7px;
+  letter-spacing: .14em;
+  writing-mode: vertical-rl;
+  border-right: 1px dashed rgba(17,17,17,.35);
+}
+
+.ticket-result-side:last-child {
+  border-right: 0;
+  border-left: 1px dashed rgba(17,17,17,.35);
+}
+
+.ticket-result-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 14px 18px;
+}
+
+.ticket-result-title {
+  font: 500 25px/1 "Cormorant Garamond", serif;
+  letter-spacing: .08em;
+}
+
+.ticket-result-sub {
+  margin-top: 8px;
+  font-size: 7px;
+  letter-spacing: .16em;
+  color: #666;
+}
+
 
 /* Venue / Floor Plan */
 .venue-map {
@@ -1274,6 +1345,7 @@ body.door-locked {
 .guestbook-inner{max-width:760px;margin:0 auto}
 .guestbook-page .section-title{margin-bottom:12px}
 .guestbook-intro{margin:0 0 34px;color:#8f8a84;font-size:12px;line-height:1.9;letter-spacing:.04em}
+.guestbook-warning{margin:-20px 0 30px;color:#8f8a84;font-size:10px;line-height:1.8;letter-spacing:.03em}
 .guestbook-form{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:28px 0;margin-bottom:42px}
 .guestbook-field{margin-bottom:14px}
 .guestbook-field label{display:block;margin-bottom:8px;color:#aaa39b;font-size:10px;letter-spacing:.16em}
@@ -1350,7 +1422,7 @@ body.door-locked {
         <div class="plus">+</div>
         <div class="card-info">
           <div class="role">RINGMASTER</div>
-          <div class="name">Mostis Zorin</div>
+          <div class="name">Mstis Zorin</div>
           <div class="meta"><span>THE DIRECTOR</span><span>01</span></div>
         </div>
       </article>
@@ -1551,6 +1623,7 @@ body.door-locked {
       <div class="section-kicker">LEAVE A NOTE</div>
       <div class="section-title">Guestbook.</div>
       <p class="guestbook-intro">Leave a quiet message for The Midnight. No account, email, or password is required.</p>
+      <p class="guestbook-warning">※ 방명록에 작성한 글은 관리자만 삭제할 수 있습니다.</p>
 
       <form class="guestbook-form" id="guestbookForm">
         <div class="guestbook-field">
@@ -1672,6 +1745,14 @@ body.door-locked {
           Your ticket has been reserved.<br>
           The curtain will rise after midnight.
         </p>
+        <a class="ticket-result" href="https://share.crack.wrtn.ai/xg335a" target="_blank" rel="noopener noreferrer" aria-label="Open your ticket">
+          <span class="ticket-result-side">ADMIT ONE</span>
+          <span class="ticket-result-main">
+            <span class="ticket-result-title">THE MIDNIGHT</span>
+            <span class="ticket-result-sub">YOUR TICKET &nbsp;·&nbsp; CLICK TO ENTER</span>
+          </span>
+          <span class="ticket-result-side">00:00</span>
+        </a>
       </div>
     </div>
   </div>
@@ -1682,7 +1763,7 @@ body.door-locked {
 const characters = {
   mystis: {
     role: "RINGMASTER",
-    name: "Mostis Zorin",
+    name: "Mstis Zorin",
     age: "2002.11.06",
     origin: "Russia",
     role2: "Ringmaster / Director",
