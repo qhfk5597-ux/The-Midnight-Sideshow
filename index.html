@@ -1268,6 +1268,34 @@ body.door-locked {
     max-height: 64vh !important;
   }
 }
+
+/* Guestbook */
+.guestbook-page{padding:110px 6vw 120px;background:#0b0b0d;color:#eee;scroll-margin-top:72px}
+.guestbook-inner{max-width:760px;margin:0 auto}
+.guestbook-page .section-title{margin-bottom:12px}
+.guestbook-intro{margin:0 0 34px;color:#8f8a84;font-size:12px;line-height:1.9;letter-spacing:.04em}
+.guestbook-form{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:28px 0;margin-bottom:42px}
+.guestbook-field{margin-bottom:14px}
+.guestbook-field label{display:block;margin-bottom:8px;color:#aaa39b;font-size:10px;letter-spacing:.16em}
+.guestbook-field input,.guestbook-field textarea{box-sizing:border-box;width:100%;border:1px solid #29272a;background:#111114;color:#f3f0ed;padding:13px 14px;border-radius:0;outline:none;font:inherit;font-size:12px}
+.guestbook-field input:focus,.guestbook-field textarea:focus{border-color:#6f5260}
+.guestbook-field textarea{min-height:120px;resize:vertical;line-height:1.7}
+.guestbook-submit{border:1px solid #5d4652;background:transparent;color:#d9c7cf;padding:12px 22px;font-size:10px;letter-spacing:.18em;cursor:pointer;transition:.25s}
+.guestbook-submit:hover{background:#20171c;color:#fff}
+.guestbook-submit:disabled{opacity:.45;cursor:wait}
+.guestbook-status{min-height:18px;margin-top:12px;color:#8f8a84;font-size:11px;line-height:1.6}
+.guestbook-list{display:grid;gap:1px;background:#252326;border-top:1px solid #252326}
+.guestbook-entry{background:#101012;padding:20px 18px}
+.guestbook-entry-head{display:flex;justify-content:space-between;gap:20px;align-items:baseline;margin-bottom:9px}
+.guestbook-entry-name{color:#ddd6d1;font-size:11px;letter-spacing:.1em}
+.guestbook-entry-date{color:#68636a;font-size:9px;letter-spacing:.08em;white-space:nowrap}
+.guestbook-entry-message{margin:0;color:#aaa5a0;font-size:12px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}
+.guestbook-empty{padding:36px 18px;text-align:center;color:#625e63;font-size:11px;letter-spacing:.08em}
+@media(max-width:600px){
+  .guestbook-page{padding:85px 22px 90px}
+  .guestbook-entry-head{display:block}
+  .guestbook-entry-date{display:block;margin-top:6px}
+}
 </style>
 
 </head>
@@ -1287,6 +1315,7 @@ body.door-locked {
     <a href="#details">DETAILS</a>
     <a href="#characters">CHARACTERS</a>
     <a href="#about">ABOUT</a>
+    <a href="#guestbook">GUESTBOOK</a>
   </nav>
 </header>
 
@@ -1514,6 +1543,32 @@ body.door-locked {
       Three performers. One stage. And a collection of stories
       that were never meant to meet.
     </p>
+  </section>
+
+  <!-- Guestbook Section -->
+  <section class="guestbook-page" id="guestbook">
+    <div class="guestbook-inner">
+      <div class="section-kicker">LEAVE A NOTE</div>
+      <div class="section-title">Guestbook.</div>
+      <p class="guestbook-intro">Leave a quiet message for The Midnight. No account, email, or password is required.</p>
+
+      <form class="guestbook-form" id="guestbookForm">
+        <div class="guestbook-field">
+          <label for="guestbookNickname">NICKNAME</label>
+          <input id="guestbookNickname" name="nickname" type="text" maxlength="20" autocomplete="nickname" placeholder="Your name" required>
+        </div>
+        <div class="guestbook-field">
+          <label for="guestbookMessage">MESSAGE</label>
+          <textarea id="guestbookMessage" name="message" maxlength="500" placeholder="Leave a message..." required></textarea>
+        </div>
+        <button class="guestbook-submit" id="guestbookSubmit" type="submit">SIGN THE GUESTBOOK &rarr;</button>
+        <div class="guestbook-status" id="guestbookStatus" aria-live="polite"></div>
+      </form>
+
+      <div class="guestbook-list" id="guestbookList">
+        <div class="guestbook-empty">LOADING...</div>
+      </div>
+    </div>
   </section>
 </main>
 
@@ -1796,6 +1851,99 @@ if (doorEntrance) {
   v.muted=true; v.defaultMuted=true;
   const p=v.play();
   if(p && p.catch) p.catch(()=>{});
+})();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  const SUPABASE_URL = "https://onpcerxpwpvtgickllrg.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_o2H8J9sWxzPlj_EAnJM4wQ_oBMEiiW9";
+  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  const form = document.getElementById("guestbookForm");
+  const nickname = document.getElementById("guestbookNickname");
+  const message = document.getElementById("guestbookMessage");
+  const submit = document.getElementById("guestbookSubmit");
+  const status = document.getElementById("guestbookStatus");
+  const list = document.getElementById("guestbookList");
+
+  function escapeDate(value){
+    try { return new Date(value).toLocaleString("ko-KR", {year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}); }
+    catch(e){ return ""; }
+  }
+
+  function renderEntries(entries){
+    list.innerHTML = "";
+    if (!entries.length) {
+      list.innerHTML = '<div class="guestbook-empty">NO NOTES YET.</div>';
+      return;
+    }
+    entries.forEach(entry => {
+      const article = document.createElement("article");
+      article.className = "guestbook-entry";
+      const head = document.createElement("div");
+      head.className = "guestbook-entry-head";
+      const name = document.createElement("div");
+      name.className = "guestbook-entry-name";
+      name.textContent = entry.nickname;
+      const date = document.createElement("time");
+      date.className = "guestbook-entry-date";
+      date.textContent = escapeDate(entry.created_at);
+      const text = document.createElement("p");
+      text.className = "guestbook-entry-message";
+      text.textContent = entry.message;
+      head.append(name, date);
+      article.append(head, text);
+      list.appendChild(article);
+    });
+  }
+
+  async function loadEntries(){
+    const { data, error } = await client.from("guestbook").select("id,nickname,message,created_at").order("created_at", {ascending:false}).limit(100);
+    if (error) {
+      list.innerHTML = '<div class="guestbook-empty">THE GUESTBOOK IS TEMPORARILY UNAVAILABLE.</div>';
+      return;
+    }
+    renderEntries(data || []);
+  }
+
+  async function ensureAnonymousSession(){
+    const current = await client.auth.getSession();
+    if (current.data && current.data.session) return true;
+    const { error } = await client.auth.signInAnonymously();
+    return !error;
+  }
+
+  async function init(){
+    const ok = await ensureAnonymousSession();
+    if (!ok) {
+      status.textContent = "Unable to open the guestbook right now.";
+      submit.disabled = true;
+      return;
+    }
+    await loadEntries();
+  }
+
+  form.addEventListener("submit", async function(e){
+    e.preventDefault();
+    const n = nickname.value.trim();
+    const m = message.value.trim();
+    if (!n || !m) return;
+    submit.disabled = true;
+    status.textContent = "SIGNING...";
+    const { error } = await client.from("guestbook").insert({nickname:n, message:m});
+    if (error) {
+      status.textContent = "Something went wrong. Please try again.";
+      submit.disabled = false;
+      return;
+    }
+    form.reset();
+    status.textContent = "Your note has been added.";
+    await loadEntries();
+    submit.disabled = false;
+  });
+
+  init();
 })();
 </script>
 
